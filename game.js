@@ -228,6 +228,13 @@ function drawPinecone(parent) {
   return { g, w: 38, h: 58 };
 }
 
+function drawEgg(parent) {
+  const g = el("g", {}, parent);
+  el("ellipse", { cx: 0, cy: -19, rx: 15, ry: 20, fill: "#f6efdf", stroke: "#ddd1b6", "stroke-width": 2.5 }, g);
+  el("ellipse", { cx: -5, cy: -26, rx: 4, ry: 6.5, fill: "rgba(255,255,255,.55)" }, g);
+  return { g, w: 34, h: 42 };
+}
+
 /* ---------- Dessins : fragments qui dépassent (vrais et faux) ----------
    Convention : ancrés en (0,0), pointent vers le haut (-y) et vers
    l'extérieur (+x) ; le montage applique un miroir selon le côté. */
@@ -279,6 +286,11 @@ function fragPinecone(g) {
   el("ellipse", { cx: 7, cy: -8, rx: 11, ry: 14, fill: "#6e4a2c", stroke: "#503418", "stroke-width": 2.2, transform: "rotate(18 7 -8)" }, g);
   el("path", { d: "M 0 -14 Q 7 -10 14 -14 M -1 -7 Q 7 -3 15 -7", fill: "none", stroke: "#503418", "stroke-width": 1.8 }, g);
 }
+// fausse botte n°3 : œuf dur — même ovoïde que la botte mais couleur coquille
+function fragEgg(g) {
+  el("ellipse", { cx: 6, cy: -7, rx: 12, ry: 9, fill: "#f6efdf", stroke: "#ddd1b6", "stroke-width": 2, transform: "rotate(-14 6 -7)" }, g);
+  el("ellipse", { cx: 1, cy: -11, rx: 3.5, ry: 2.4, fill: "rgba(255,255,255,.6)" }, g);
+}
 
 const DECOY_TYPES = [
   { full: drawMushroom, frag: fragMushroom, kind: "top", label: "un champignon" },
@@ -287,6 +299,7 @@ const DECOY_TYPES = [
   { full: drawDandelions, frag: fragDandelion, kind: "side-mid", label: "des pissenlits" },
   { full: drawGlove, frag: fragGlove, kind: "side-base", label: "un vieux gant de jardin" },
   { full: drawPinecone, frag: fragPinecone, kind: "side-base", label: "une pomme de pin" },
+  { full: drawEgg, frag: fragEgg, kind: "side-base", label: "l'œuf dur de papa", msg: "Raté ! C'est l'œuf dur de papa…" },
 ];
 
 /* ---------- Dessins : décor libre ---------- */
@@ -565,7 +578,7 @@ function mountDecoy(spot, type, p) {
     drawFrag: type.frag,
     kind: type.kind,
   });
-  interactives.push({ ...r, role: "decoy", label: type.label, done: false });
+  interactives.push({ ...r, role: "decoy", label: type.label, msg: type.msg, done: false });
 }
 
 /* ---------- État & chrono ---------- */
@@ -679,7 +692,7 @@ svg.addEventListener("pointerdown", (e) => {
     if (!entry || entry.done) return;
     entry.done = true;
     penalize(DECOY_PENALTY, pt, "+15 s");
-    bubble(pt, `Raté ! C'était ${entry.label}…`);
+    bubble(pt, entry.msg || `Raté ! C'était ${entry.label}…`);
     // le leurre se montre puis disparaît
     entry.fragGroup.remove();
     entry.wrap.appendChild(entry.objGroup);

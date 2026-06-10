@@ -96,11 +96,12 @@ body {
 
 .stage {
   position: relative;
-  width: min(1200px, 100%);
-  flex: 1;
-  min-height: 0;
+  /* Largeur bornée à la fois par l'espace horizontal ET vertical disponible
+     pour que le plateau reste TOUJOURS en 16:9 exact → aucune marge interne,
+     rien n'est rogné, sur tout écran (desktop, portrait, paysage). */
+  width: min(1200px, 100%, calc((100dvh - 130px) * 16 / 9));
   aspect-ratio: 16 / 9;
-  max-height: calc(100vh - 110px);
+  margin-block: auto;            /* centre verticalement dans l'espace restant */
   border: 6px solid var(--ink);
   border-radius: var(--radius);
   overflow: hidden;
@@ -386,7 +387,43 @@ body {
   box-shadow: 0 2px 0 var(--red-deep);
 }
 
-@media (max-width: 640px) {
-  .hud { grid-template-columns: auto auto; }
+/* ---------- Mobile ---------- */
+
+.rotate-hint { display: none; }
+
+@media (max-width: 760px) {
+  body {
+    height: 100dvh;
+    padding: 8px;
+    gap: 6px;
+    justify-content: flex-start;
+  }
+  .hud {
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+  }
   .hud-last { display: none; }
+  .stage {
+    border-width: 4px;
+    box-shadow: 0 8px 0 rgba(58, 42, 28, .2), inset 0 0 0 4px rgba(253, 248, 236, .5);
+  }
+  /* overlays en plein écran : la carte ne reste jamais coincée dans un petit plateau */
+  .overlay {
+    position: fixed;
+    border-radius: 0;
+  }
+  .card {
+    max-height: 92dvh;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .rotate-hint {
+    display: block;
+    text-align: center;
+    font-size: .8rem;
+    color: var(--ink-soft);
+    margin-top: 10px;
+  }
 }
