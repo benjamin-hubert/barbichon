@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cherche le Barbichon</title>
+<meta name="description" content="Un nain se cache dans le paysage. Trouve le bout qui dépasse, évite les pièges, bats le chrono !">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M 6 28 Q 16 20 26 28 Q 24 8 17 3 Q 8 12 6 28 Z' fill='%23d6452c' stroke='%23a93722' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hud">
+  <h1 class="hud-title">Cherche le <em>Barbichon</em></h1>
+  <div class="hud-timer" id="timer" aria-live="off">0:00.0</div>
+  <div class="hud-last" id="lastWin">Dernière victoire&nbsp;: —</div>
+</header>
+
+<main class="stage" id="stage">
+  <svg id="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Paysage où se cache un nain"></svg>
+  <div class="fx-layer" id="fx" aria-hidden="true"></div>
+
+  <div class="overlay" id="intro">
+    <div class="card">
+      <svg class="card-gnome" id="introGnome" viewBox="-60 -190 120 200" aria-hidden="true"></svg>
+      <h2>Un nain se cache par ici…</h2>
+      <p>Seul un petit bout de lui dépasse&nbsp;: la pointe du bonnet, un brin de barbe ou le bout d'une botte. Mais gare aux imposteurs&nbsp;— champignons, ballons, pissenlits et compagnie dépassent eux aussi&nbsp;! Trouve le vrai nain au plus vite.</p>
+      <p class="rules">
+        <span class="rule rule-decoy">Faux indice&nbsp;: <strong>+15&nbsp;s</strong></span>
+        <span class="rule rule-miss">Clic dans le vide&nbsp;: <strong>+5&nbsp;s</strong></span>
+      </p>
+      <button id="playBtn" class="btn" type="button">Jouer</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="winOverlay">
+    <div class="card">
+      <h2>Trouvé&nbsp;!</h2>
+      <p class="win-time" id="winTime">0:00.0</p>
+      <p class="win-quip" id="winQuip"></p>
+      <button id="replayBtn" class="btn" type="button">Rejouer</button>
+    </div>
+  </div>
+</main>
+
+<script src="game.js"></script>
+</body>
+</html>
