@@ -235,6 +235,41 @@ function drawEgg(parent) {
   return { g, w: 34, h: 42 };
 }
 
+function drawConfetti(parent) {
+  const g = el("g", {}, parent);
+  const cols = ["#d6452c", "#e8b339", "#4d8a4b", "#3f6ea0", "#e784a8", "#fdf3e3"];
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2 + i * 0.6;
+    const rr = 8 + (i % 4) * 8;
+    const x = Math.cos(a) * rr;
+    const y = -24 + Math.sin(a) * rr * 0.7;
+    el("rect", {
+      x: x - 3, y: y - 4.5, width: 6, height: 9, rx: 1.5,
+      fill: cols[i % cols.length],
+      transform: `rotate(${Math.round((a * 180) / Math.PI)} ${x.toFixed(1)} ${y.toFixed(1)})`,
+    }, g);
+  }
+  return { g, w: 78, h: 62 };
+}
+
+function drawWatergun(parent) {
+  const g = el("g", {}, parent);
+  el("ellipse", { cx: -2, cy: -38, rx: 12, ry: 7, fill: "#5fb0d6", stroke: "#3f8db5", "stroke-width": 2 }, g);
+  el("path", { d: "M -24 -22 L 12 -22 L 12 -34 L 22 -34 L 22 -16 L 4 -16 L 0 0 L -12 0 L -10 -16 L -24 -16 Z", fill: "#ef7a3a", stroke: "#b8431a", "stroke-width": 2.5 }, g);
+  el("rect", { x: 20, y: -34, width: 9, height: 7, rx: 2, fill: "#bfe3ef", stroke: "#7fb3c9", "stroke-width": 1.5 }, g);
+  el("circle", { cx: -16, cy: -19, r: 3.5, fill: "#ffd24a" }, g);
+  return { g, w: 58, h: 45 };
+}
+
+function drawAnkle(parent) {
+  const g = el("g", {}, parent);
+  el("rect", { x: -9, y: -44, width: 18, height: 34, rx: 8, fill: "#f2b98c", stroke: "#d98f63", "stroke-width": 2.5 }, g);
+  el("path", { d: "M -9 -16 Q -9 1 1 2 L 24 2 Q 28 2 25 -7 Q 14 -13 7 -16 Z", fill: "#f2b98c", stroke: "#d98f63", "stroke-width": 2.5 }, g);
+  el("rect", { x: -10, y: -22, width: 20, height: 7, fill: "#e7ddc8", stroke: "#cdbf9f", "stroke-width": 1.5 }, g);
+  el("circle", { cx: -7, cy: -14, r: 2.4, fill: "#e6a37a" }, g);
+  return { g, w: 46, h: 46 };
+}
+
 /* ---------- Dessins : fragments qui dépassent (vrais et faux) ----------
    Convention : ancrés en (0,0), pointent vers le haut (-y) et vers
    l'extérieur (+x) ; le montage applique un miroir selon le côté. */
@@ -291,6 +326,23 @@ function fragEgg(g) {
   el("ellipse", { cx: 6, cy: -7, rx: 12, ry: 9, fill: "#f6efdf", stroke: "#ddd1b6", "stroke-width": 2, transform: "rotate(-14 6 -7)" }, g);
   el("ellipse", { cx: 1, cy: -11, rx: 3.5, ry: 2.4, fill: "rgba(255,255,255,.6)" }, g);
 }
+// faux bonnet : un éclat de confetti rouge dressé ~ pointe de bonnet, entouré d'éclats
+function fragConfetti(g) {
+  el("path", { d: "M -4 4 L 1 -26 L 6 4 Z", fill: "#d6452c", stroke: "#a93722", "stroke-width": 2 }, g);
+  el("rect", { x: -13, y: -8, width: 6, height: 9, rx: 1.5, fill: "#e8b339", transform: "rotate(-22 -10 -4)" }, g);
+  el("rect", { x: 8, y: -13, width: 6, height: 9, rx: 1.5, fill: "#4d8a4b", transform: "rotate(28 11 -9)" }, g);
+  el("rect", { x: -2, y: -30, width: 5, height: 8, rx: 1.5, fill: "#3f6ea0", transform: "rotate(12 0 -26)" }, g);
+}
+// fausse botte : bout de canon orange + embout clair qui dépasse
+function fragWatergun(g) {
+  el("rect", { x: -2, y: -11, width: 20, height: 10, rx: 3, fill: "#ef7a3a", stroke: "#b8431a", "stroke-width": 2, transform: "rotate(-10 -2 -6)" }, g);
+  el("rect", { x: 15, y: -12, width: 5, height: 8, rx: 1.5, fill: "#bfe3ef", stroke: "#7fb3c9", "stroke-width": 1.5 }, g);
+}
+// fausse botte : bout de pied couleur peau (~ celle du nain) + malléole
+function fragAnkle(g) {
+  el("path", { d: "M 0 2 Q -3 -15 7 -17 Q 16 -17 18 -4 Q 19 2 13 2 Z", fill: "#f2b98c", stroke: "#d98f63", "stroke-width": 2 }, g);
+  el("circle", { cx: 7, cy: -13, r: 2.4, fill: "#e6a37a" }, g);
+}
 
 const DECOY_TYPES = [
   { full: drawMushroom, frag: fragMushroom, kind: "top", label: "un champignon" },
@@ -300,6 +352,9 @@ const DECOY_TYPES = [
   { full: drawGlove, frag: fragGlove, kind: "side-base", label: "un vieux gant de jardin" },
   { full: drawPinecone, frag: fragPinecone, kind: "side-base", label: "une pomme de pin" },
   { full: drawEgg, frag: fragEgg, kind: "side-base", label: "l'œuf dur de pape", msg: "Raté ! C'est l'œuf dur de pape…" },
+  { full: drawConfetti, frag: fragConfetti, kind: "top", label: "les confettis de Chris & Lulu", msg: "Raté ! Ce sont les confettis de Chris & Lulu…" },
+  { full: drawWatergun, frag: fragWatergun, kind: "side-base", label: "le pistolet à eau de Loulou", msg: "Raté ! C'est le pistolet à eau de Loulou…" },
+  { full: drawAnkle, frag: fragAnkle, kind: "side-base", label: "la cheville de Nana", msg: "Raté ! C'est la cheville de Nana…" },
 ];
 
 /* ---------- Dessins : décor libre ---------- */
@@ -445,7 +500,7 @@ function generateScene(seed) {
   // attribution : 1 nain, 3-5 leurres, le reste en cachettes vides
   const gnomeSpot = spots.find((s) => s.y > 680) || spots[0];
   const others = spots.filter((s) => s !== gnomeSpot);
-  const decoyCount = Math.min(randInt(5, 6), others.length);
+  const decoyCount = Math.min(randInt(5, 7), others.length);
   const decoySpots = others.slice(0, decoyCount);
   const emptySpots = others.slice(decoyCount);
 
