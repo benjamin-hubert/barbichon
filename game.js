@@ -270,6 +270,40 @@ function drawAnkle(parent) {
   return { g, w: 46, h: 46 };
 }
 
+// Barbinul : le faux nain qui fait la tête (tunique kaki, bonnet à pompon terne)
+function drawBarbinul(parent) {
+  const tunic = "#6d7a55";
+  const tunicDark = "#586245";
+  const g = el("g", { class: "gnome-body" }, parent);
+  el("ellipse", { cx: -13, cy: -6, rx: 14, ry: 9, fill: "#5b3a29" }, g);
+  el("ellipse", { cx: 13, cy: -6, rx: 14, ry: 9, fill: "#4a2f21" }, g);
+  el("rect", { x: -16, y: -50, width: 32, height: 42, rx: 9, fill: "#55603f" }, g);
+  el("path", { d: "M -27 -48 Q 0 -62 27 -48 L 21 -98 Q 0 -110 -21 -98 Z", fill: tunic }, g);
+  el("rect", { x: -25, y: -64, width: 50, height: 11, rx: 5, fill: "#2c1d12" }, g);
+  el("rect", { x: -7, y: -67, width: 14, height: 16, rx: 3, fill: "#b9933a" }, g);
+  // bras croisés et boudeurs
+  el("ellipse", { cx: -20, cy: -70, rx: 8, ry: 10, fill: tunicDark }, g);
+  el("ellipse", { cx: 20, cy: -70, rx: 8, ry: 10, fill: tunicDark }, g);
+  // barbe grisâtre mal peignée
+  el("path", { d: "M -23 -102 Q -32 -68 0 -56 Q 32 -68 23 -102 Q 11 -92 0 -92 Q -11 -92 -23 -102 Z", fill: "#e3e0d4", stroke: "#c8c3b2", "stroke-width": 2 }, g);
+  // visage
+  el("circle", { cx: 0, cy: -106, r: 16, fill: "#eaad7e" }, g);
+  // bouche boudeuse (frown)
+  el("path", { d: "M -7 -95 Q 0 -101 7 -95", fill: "none", stroke: "#9c5a3c", "stroke-width": 2.5, "stroke-linecap": "round" }, g);
+  // nez
+  el("ellipse", { cx: 0, cy: -101, rx: 7.5, ry: 6.5, fill: "#dd8a5e" }, g);
+  // yeux
+  el("circle", { cx: -7, cy: -111, r: 2.5, fill: "#2c1d12" }, g);
+  el("circle", { cx: 7, cy: -111, r: 2.5, fill: "#2c1d12" }, g);
+  // sourcils froncés (en V)
+  el("path", { d: "M -13 -118 L -3 -114", fill: "none", stroke: "#3a2a1c", "stroke-width": 3, "stroke-linecap": "round" }, g);
+  el("path", { d: "M 13 -118 L 3 -114", fill: "none", stroke: "#3a2a1c", "stroke-width": 3, "stroke-linecap": "round" }, g);
+  // bonnet (presque comme le vrai) + pompon terne = le tell
+  el("path", { d: "M -21 -112 Q 0 -122 21 -112 Q 17 -150 3 -170 Q -14 -148 -21 -112 Z", fill: "#cf5138", stroke: "#9e3a22", "stroke-width": 2.5 }, g);
+  el("circle", { cx: 3, cy: -169, r: 5.5, fill: "#b7b1a1", stroke: "#9a9482", "stroke-width": 1.5 }, g);
+  return { g, w: 62, h: GNOME_H };
+}
+
 /* ---------- Dessins : fragments qui dépassent (vrais et faux) ----------
    Convention : ancrés en (0,0), pointent vers le haut (-y) et vers
    l'extérieur (+x) ; le montage applique un miroir selon le côté. */
@@ -343,6 +377,12 @@ function fragAnkle(g) {
   el("path", { d: "M 0 2 Q -3 -15 7 -17 Q 16 -17 18 -4 Q 19 2 13 2 Z", fill: "#f2b98c", stroke: "#d98f63", "stroke-width": 2 }, g);
   el("circle", { cx: 7, cy: -13, r: 2.4, fill: "#e6a37a" }, g);
 }
+// faux bonnet de Barbinul : pointe quasi identique au vrai nain mais
+// rouge légèrement différent + petit pompon terne (le seul tell visible)
+function fragBarbinulHat(g) {
+  el("path", { d: "M -11 4 Q -6 -10 0 -22 Q 6 -10 11 4 Z", fill: "#cf5138", stroke: "#9e3a22", "stroke-width": 2.5 }, g);
+  el("circle", { cx: 0, cy: -22, r: 3.4, fill: "#b7b1a1", stroke: "#9a9482", "stroke-width": 1.2 }, g);
+}
 
 const DECOY_TYPES = [
   { full: drawMushroom, frag: fragMushroom, kind: "top", label: "un champignon" },
@@ -355,6 +395,7 @@ const DECOY_TYPES = [
   { full: drawConfetti, frag: fragConfetti, kind: "top", label: "les confettis de Chris & Lulu", msg: "Raté ! Ce sont les confettis de Chris & Lulu…" },
   { full: drawWatergun, frag: fragWatergun, kind: "side-base", label: "le pistolet à eau de Loulou", msg: "Raté ! C'est le pistolet à eau de Loulou…" },
   { full: drawAnkle, frag: fragAnkle, kind: "side-base", label: "la cheville de Nana", msg: "Raté ! C'est la cheville de Nana…" },
+  { full: drawBarbinul, frag: fragBarbinulHat, kind: "top", label: "Barbinul", msg: "Raté ! C'est Barbinul, le faux nain qui fait la tête…" },
 ];
 
 /* ---------- Dessins : décor libre ---------- */
