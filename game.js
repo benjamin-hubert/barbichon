@@ -299,7 +299,7 @@ const DECOY_TYPES = [
   { full: drawDandelions, frag: fragDandelion, kind: "side-mid", label: "des pissenlits" },
   { full: drawGlove, frag: fragGlove, kind: "side-base", label: "un vieux gant de jardin" },
   { full: drawPinecone, frag: fragPinecone, kind: "side-base", label: "une pomme de pin" },
-  { full: drawEgg, frag: fragEgg, kind: "side-base", label: "l'œuf dur de papa", msg: "Raté ! C'est l'œuf dur de papa…" },
+  { full: drawEgg, frag: fragEgg, kind: "side-base", label: "l'œuf dur de pape", msg: "Raté ! C'est l'œuf dur de pape…" },
 ];
 
 /* ---------- Dessins : décor libre ---------- */
