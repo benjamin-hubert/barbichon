@@ -766,6 +766,39 @@ const state = { phase: "intro", startTs: 0, penaltyMs: 0, finalMs: 0, lastWinMs:
 // passe à true si l'inspecteur est détecté pendant la partie → score non homologué
 let cheated = false;
 
+// combo : victoires rapides enchaînées (persiste entre les parties d'une session)
+let combo = 0;
+const COMBO_MS = 20000; // une victoire sous 20 s entretient le combo
+function comboTitle(c) {
+  if (c >= 6) return "Complice présumé de Pape 👀";
+  if (c >= 4) return "Traqueur de nains";
+  if (c >= 3) return "Œil de lynx";
+  if (c >= 2) return "Limier du dimanche";
+  return "";
+}
+
+// le nain qui nargue : bulles moqueuses si la partie traîne
+let tauntTimers = [];
+const TAUNTS = [
+  "Tu chauffes… ou pas. 😏",
+  "Je suis pourtant juste là.",
+  "Un indice ? Nan. 🤭",
+  "Le café refroidit, hein.",
+  "Toujours pas ? Pape se marre.",
+  "Patience… non, en fait, dépêche-toi.",
+];
+function clearTaunts() { tauntTimers.forEach(clearTimeout); tauntTimers = []; }
+function scheduleTaunts() {
+  clearTaunts();
+  [15000, 32000, 52000, 75000, 100000].forEach((t, i) => {
+    tauntTimers.push(setTimeout(() => {
+      if (state.phase !== "playing") return;
+      const x = 130 + Math.random() * Math.max(0, stage.clientWidth - 260);
+      bubble({ x, y: 110 }, TAUNTS[i % TAUNTS.length]);
+    }, t));
+  });
+}
+
 function elapsedMs() {
   return state.phase === "playing"
     ? performance.now() - state.startTs + state.penaltyMs
@@ -796,8 +829,11 @@ function startGame() {
   cheated = false;
   const wc = document.getElementById("winCheat");
   if (wc) wc.classList.add("hidden");
+  const wcb = document.getElementById("winCombo");
+  if (wcb) wcb.classList.add("hidden");
   cancelAnimationFrame(state.raf);
   tick();
+  scheduleTaunts();
 }
 
 /* ---------- Effets DOM ---------- */
@@ -902,7 +938,9 @@ function winGame() {
   state.finalMs = elapsedMs();
   state.phase = "won";
   state.lastWinMs = state.finalMs;
+  state.winId = "w-" + Date.now().toString(36) + "-" + Math.floor(Math.random() * 1e6).toString(36);
   cancelAnimationFrame(state.raf);
+  clearTaunts();
   timerEl.textContent = fmt(state.finalMs);
   lastWinEl.textContent = `Dernière victoire : ${fmt(state.lastWinMs)}`;
 
@@ -917,10 +955,22 @@ function winGame() {
   winTimeEl.textContent = fmt(state.finalMs);
   winQuipEl.textContent = WIN_QUIPS.find(([max]) => state.finalMs < max)[1];
   const wc = document.getElementById("winCheat");
+  const wcb = document.getElementById("winCombo");
   if (cheated) {
-    if (wc) wc.classList.remove("hidden");           // tricheur : score non homologué
+    combo = 0;                                         // triche : pas de combo
+    if (wc) wc.classList.remove("hidden");             // score non homologué
+    if (wcb) wcb.classList.add("hidden");
   } else {
     if (wc) wc.classList.add("hidden");
+    // combo : on enchaîne les victoires rapides
+    combo = state.finalMs < COMBO_MS ? combo + 1 : 0;
+    const title = comboTitle(combo);
+    if (combo >= 2 && title && wcb) {
+      wcb.textContent = `🔥 Combo ×${combo} — ${title} !`;
+      wcb.classList.remove("hidden");
+    } else if (wcb) {
+      wcb.classList.add("hidden");
+    }
     if (window.offerRecord) window.offerRecord(state.finalMs);
   }
   setTimeout(() => winEl.classList.remove("hidden"), 1100);
@@ -945,7 +995,7 @@ timerEl.textContent = fmt(0);
    a l'air de tirer au sort parmi toute la bande… mais elle tombe
    TOUJOURS sur Pape, et le verdict s'en étonne lui-même. */
 (function tribunalModule() {
-  const SUSPECTS = ["Chris", "Lulu", "RV", "AnneSo", "Nana", "Ben", "Pape", "Loulou", "Jacques Chirac"];
+  const SUSPECTS = ["Chris", "Lulu", "RV", "AnneSo", "Nana", "Ben", "Pape", "Loulou", "Jacques Chirac", "Steph", "Audrey", "Simon"];
   const CULPRIT = "Pape";
   const OTHERS = SUSPECTS.filter((n) => n !== CULPRIT);
 
@@ -986,6 +1036,35 @@ timerEl.textContent = fmt(0);
   const nameEl = document.getElementById("tribunalName");
   const verdictEl = document.getElementById("tribunalVerdict");
   const countEl = document.getElementById("tribunalCount");
+  const innocentBtn = document.getElementById("innocentBtn");
+  const innocentMsg = document.getElementById("innocentMsg");
+
+  // « Innocenter Pape » : ne marche jamais, refus de plus en plus vexés
+  const INNOCENT_REFUSALS = [
+    "Refusé. Les preuves sont accablantes.",
+    "Non. La roue ne se trompe jamais, elle.",
+    "Toujours non. Tu insistes lourdement, là.",
+    "Hors de question. Tu serais pas son complice, toi&nbsp;?",
+    "STOP. Encore un clic et c'est TOI qu'on met sur la roue.",
+    "Dossier clos. Pape coupable à perpétuité. 🔒",
+  ];
+  let innocentClicks = 0;
+
+  function hideInnocent() {
+    innocentBtn.classList.add("hidden");
+    innocentBtn.disabled = false;
+    innocentClicks = 0;
+    innocentMsg.innerHTML = "";
+  }
+
+  innocentBtn.addEventListener("click", () => {
+    innocentMsg.innerHTML = INNOCENT_REFUSALS[Math.min(innocentClicks, INNOCENT_REFUSALS.length - 1)];
+    innocentClicks++;
+    innocentBtn.classList.remove("shake");
+    void innocentBtn.offsetWidth; // relance l'animation
+    innocentBtn.classList.add("shake");
+    if (innocentClicks >= INNOCENT_REFUSALS.length) innocentBtn.disabled = true;
+  });
 
   let spinning = false;
 
@@ -998,6 +1077,7 @@ timerEl.textContent = fmt(0);
     nameEl.textContent = "—";
     verdictEl.textContent = "";
     countEl.textContent = "";
+    hideInnocent();
   };
 
   function spin() {
@@ -1050,6 +1130,13 @@ timerEl.textContent = fmt(0);
           : rpick(VERDICTS);
         countEl.textContent = "…";
         recordAndShow(culprit, surprise);
+        // le bouton « Innocenter Pape » n'apparaît que quand c'est bien Pape l'accusé
+        if (surprise) {
+          hideInnocent();
+        } else {
+          hideInnocent();
+          innocentBtn.classList.remove("hidden");
+        }
       }, 420);
     }
 
@@ -1148,7 +1235,7 @@ timerEl.textContent = fmt(0);
     pendingMs = null;
     saveBtn.disabled = true;
     let rank = null;
-    try { ({ rank } = await Store.recordTime(pseudo, ms)); } catch (_) {}
+    try { ({ rank } = await Store.recordTime(pseudo, ms, state.winId)); } catch (_) {}
     recordRow.style.display = "none";
     recordFlag.textContent = rank
       ? `🏅 ${pseudo}, tu es ${rank === 1 ? "1er" : rank + "e"} au classement !`

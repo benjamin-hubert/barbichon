@@ -489,6 +489,44 @@ body {
 
 .btn-link:hover { color: var(--red); }
 
+.btn-link.hidden { display: none; }
+
+#innocentBtn { margin-top: 8px; }
+
+#innocentBtn.shake { animation: innocent-shake .4s ease; }
+
+@keyframes innocent-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px) rotate(-1deg); }
+  40% { transform: translateX(5px) rotate(1deg); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+.innocent-msg {
+  margin: 5px 0 0 !important;
+  min-height: 1em;
+  font-size: clamp(.8rem, 1.7vw, .95rem) !important;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--red-deep) !important;
+}
+
+.win-combo {
+  display: inline-block;
+  margin: 6px auto 2px !important;
+  padding: .3em .95em;
+  background: var(--gold);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink) !important;
+  font-weight: 700 !important;
+  font-size: clamp(.85rem, 1.9vw, 1.05rem) !important;
+  box-shadow: 0 4px 0 #b8861f;
+}
+
+.win-combo.hidden { display: none; }
+
 .win-cheat {
   margin: 6px auto 2px !important;
   padding: .4em .8em;

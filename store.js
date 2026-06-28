@@ -27,19 +27,66 @@ const CONFIG = {
   const REMOTE = !!(CONFIG.BIN_ID && CONFIG.ACCESS_KEY);
   const BASE = `https://api.jsonbin.io/v3/b/${CONFIG.BIN_ID}`;
 
+  /* ---------- Anti-rejeu / intégrité ----------
+     Chaque enregistrement reçoit un id unique (anti-rejeu : un même save
+     n'est compté qu'une fois) et une empreinte signée. À la lecture, on
+     rejette les temps invraisemblables et les entrées dont l'empreinte ne
+     colle pas (rejeu modifié). À garder en tête : la clé JSONBin et le sel
+     vivent côté client, donc ceci stoppe le rejeu du XHR et le bidouillage
+     naïf, mais une vraie garantie demanderait un petit backend. */
+  const MIN_MS = 1000;     // sous 1 s, c'est humainement impossible → forgé
+  const SALT = "barbichon-anti-replay-2026";
+
+  function sig(str) {
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) h = (((h << 5) + h) + str.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36);
+  }
+  function newId() {
+    return Date.now().toString(36) + "-" + Math.floor(Math.random() * 1e9).toString(36);
+  }
+  const timeKey = (e) => `T|${e.p}|${e.ms}|${e.t}|${e.id}|${SALT}`;
+  const drawKey = (e) => `D|${e.n}|${e.t}|${e.id}|${SALT}`;
+  const signTime = (e) => { e.c = sig(timeKey(e)); return e; };
+  const signDraw = (e) => { e.c = sig(drawKey(e)); return e; };
+
+  function timeOk(e) {
+    if (!e || typeof e.ms !== "number" || !isFinite(e.ms) || e.ms < MIN_MS) return false;
+    if (e.id == null && e.c == null) return true;       // entrée historique tolérée
+    return e.id != null && e.c === sig(timeKey(e));      // empreinte vérifiée
+  }
+  function drawOk(e) {
+    if (!e || !e.n) return false;
+    if (e.id == null && e.c == null) return true;
+    return e.id != null && e.c === sig(drawKey(e));
+  }
+  function dedupById(arr) {
+    const seen = new Set(), out = [];
+    for (const e of arr) {
+      const k = e && e.id != null ? e.id : JSON.stringify(e);
+      if (seen.has(k)) continue;                          // rejeu / doublon ignoré
+      seen.add(k); out.push(e);
+    }
+    return out;
+  }
+
   const now = () => Date.now();
 
   function emptyState() {
     return { draws: [], tally: {}, bestTimes: [] };
   }
 
-  // normalise n'importe quel objet vers la forme attendue (robustesse)
+  // normalise + filtre les entrées invalides/rejouées, déduplique par id
   function clean(s) {
     const st = s && typeof s === "object" ? s : {};
+    const draws = dedupById((Array.isArray(st.draws) ? st.draws : []).filter(drawOk));
+    const bestTimes = dedupById((Array.isArray(st.bestTimes) ? st.bestTimes : []).filter(timeOk))
+      .sort((a, b) => a.ms - b.ms)
+      .slice(0, MAX_TIMES);
     return {
-      draws: Array.isArray(st.draws) ? st.draws : [],
+      draws,
       tally: st.tally && typeof st.tally === "object" ? st.tally : {},
-      bestTimes: Array.isArray(st.bestTimes) ? st.bestTimes : [],
+      bestTimes,
     };
   }
 
@@ -126,10 +173,12 @@ const CONFIG = {
 
   /* ---------- API publique ---------- */
 
-  // enregistre un tirage de roue : ajoute au journal + incrémente le compteur du nom
+  // enregistre un tirage de roue : ajoute au journal (id + signature) + compteur
   function recordDraw(name) {
     return mutate((st) => {
-      st.draws.push({ n: name, t: now() });
+      const id = newId();
+      if (st.draws.some((e) => e.id === id)) return;     // garde-fou anti-doublon
+      st.draws.push(signDraw({ n: name, t: now(), id }));
       if (st.draws.length > MAX_DRAWS) st.draws = st.draws.slice(-MAX_DRAWS);
       st.tally[name] = (st.tally[name] || 0) + 1;
     });
@@ -137,18 +186,30 @@ const CONFIG = {
 
   // un temps qualifie-t-il pour le Top 10 ? (plus c'est petit, mieux c'est)
   function qualifies(state, ms) {
+    if (typeof ms !== "number" || !isFinite(ms) || ms < MIN_MS) return false;
     const bt = state.bestTimes;
     return bt.length < MAX_TIMES || ms < bt[bt.length - 1].ms;
   }
 
-  // enregistre un temps ; renvoie {rank, state} (rank = 1..10) ou {rank:null, state}
-  async function recordTime(pseudo, ms) {
+  // enregistre un temps ; `winId` rend l'opération idempotente (anti-rejeu :
+  // un même save ne compte qu'une fois). Renvoie {rank, state}.
+  async function recordTime(pseudo, ms, winId) {
     let rank = null;
+    if (typeof ms !== "number" || !isFinite(ms) || ms < MIN_MS) {
+      return { rank: null, state: await getState() }; // temps invraisemblable : refusé
+    }
+    const id = winId || newId();
     const state = await mutate((st) => {
-      st.bestTimes.push({ p: String(pseudo || "?").slice(0, 14), ms, t: now() });
+      if (st.bestTimes.some((e) => e.id === id)) {        // déjà enregistré → on ignore
+        const j = st.bestTimes.findIndex((e) => e.id === id);
+        rank = j >= 0 ? j + 1 : null;
+        return;
+      }
+      const entry = signTime({ p: String(pseudo || "?").slice(0, 14), ms, t: now(), id });
+      st.bestTimes.push(entry);
       st.bestTimes.sort((a, b) => a.ms - b.ms);
       st.bestTimes = st.bestTimes.slice(0, MAX_TIMES);
-      const i = st.bestTimes.findIndex((e) => e.ms === ms && e.t);
+      const i = st.bestTimes.findIndex((e) => e.id === id);
       rank = i >= 0 ? i + 1 : null;
     });
     return { rank, state };
