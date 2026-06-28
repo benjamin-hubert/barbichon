@@ -270,6 +270,62 @@ function drawAnkle(parent) {
   return { g, w: 46, h: 46 };
 }
 
+// invitation au Mans (carton à bandeau damier ~ drapeau de course)
+function drawInvitation(parent) {
+  const g = el("g", {}, parent);
+  el("rect", { x: -28, y: -68, width: 56, height: 68, rx: 4, fill: "#fbf4e6", stroke: "rgba(0,0,0,.22)", "stroke-width": 2.5 }, g);
+  // bandeau damier (deux rangées décalées)
+  for (let i = 0; i < 11; i++) {
+    el("rect", { x: -28 + i * 5, y: -68, width: 5, height: 7, fill: i % 2 ? "#2c1d12" : "#fbf4e6" }, g);
+    el("rect", { x: -28 + i * 5, y: -61, width: 5, height: 7, fill: i % 2 ? "#fbf4e6" : "#2c1d12" }, g);
+  }
+  // lignes de texte
+  el("path", { d: "M -20 -44 L 20 -44 M -20 -35 L 12 -35 M -20 -26 L 16 -26 M -20 -17 L 8 -17", fill: "none", stroke: "#c7b896", "stroke-width": 2.5 }, g);
+  return { g, w: 60, h: 70 };
+}
+
+// un caillou à lécher (galet lisse + langue rose)
+function drawLickStone(parent) {
+  const g = el("g", {}, parent);
+  el("path", { d: "M -34 0 Q -42 -30 -14 -40 Q 16 -50 34 -26 Q 42 -10 30 0 Z", fill: "#9aa0a6", stroke: "rgba(0,0,0,.25)", "stroke-width": 2.5 }, g);
+  el("ellipse", { cx: -6, cy: -30, rx: 13, ry: 6, fill: "rgba(255,255,255,.4)" }, g);
+  // langue qui lèche
+  el("path", { d: "M 26 -12 Q 50 -10 51 -26 Q 51 -34 44 -31 Q 41 -20 26 -20 Z", fill: "#e784a8", stroke: "#c75c84", "stroke-width": 2 }, g);
+  el("path", { d: "M 46 -29 Q 48 -22 46 -16", fill: "none", stroke: "#c75c84", "stroke-width": 1.5 }, g);
+  return { g, w: 86, h: 50 };
+}
+
+// le faire-part de Sacha (carton pastel à nœud)
+function drawAnnouncement(parent) {
+  const g = el("g", {}, parent);
+  el("rect", { x: -26, y: -62, width: 52, height: 62, rx: 4, fill: "#fdf1f5", stroke: "rgba(0,0,0,.2)", "stroke-width": 2.5 }, g);
+  el("path", { d: "M -16 -46 L 16 -46 M -12 -38 L 12 -38", fill: "none", stroke: "#caa6b4", "stroke-width": 2 }, g);
+  // prénom
+  el("rect", { x: -18, y: -32, width: 36, height: 7, rx: 3, fill: "#e784a8" }, g);
+  el("path", { d: "M -14 -18 L 14 -18 M -14 -11 L 6 -11", fill: "none", stroke: "#caa6b4", "stroke-width": 2 }, g);
+  // ruban / nœud en haut
+  el("path", { d: "M 0 -62 Q -16 -73 -18 -60 Q -8 -57 0 -62 Q 8 -57 18 -60 Q 16 -73 0 -62 Z", fill: "#bcd6ef", stroke: "#8fb6da", "stroke-width": 1.5 }, g);
+  el("circle", { cx: 0, cy: -62, r: 4, fill: "#8fb6da" }, g);
+  return { g, w: 56, h: 76 };
+}
+
+// le perfo de JJ (perforateur dressé, mèche en l'air)
+function drawDrill(parent) {
+  const g = el("g", {}, parent);
+  // poignée
+  el("rect", { x: -11, y: -34, width: 22, height: 34, rx: 6, fill: "#3a3f44", stroke: "rgba(0,0,0,.3)", "stroke-width": 2 }, g);
+  el("rect", { x: -9, y: -30, width: 18, height: 7, rx: 2, fill: "#d6452c" }, g);
+  // corps moteur
+  el("rect", { x: -15, y: -78, width: 30, height: 46, rx: 8, fill: "#f0a93a", stroke: "#b87a1e", "stroke-width": 2.5 }, g);
+  el("rect", { x: -15, y: -58, width: 30, height: 7, fill: "#b87a1e" }, g);
+  // mandrin
+  el("rect", { x: -8, y: -92, width: 16, height: 16, rx: 3, fill: "#9aa0a6", stroke: "#6c7176", "stroke-width": 2.5 }, g);
+  // mèche
+  el("rect", { x: -3, y: -118, width: 6, height: 28, fill: "#c2c7cc", stroke: "#8c9196", "stroke-width": 1.5 }, g);
+  el("path", { d: "M -3 -110 L 3 -106 M -3 -102 L 3 -98 M -3 -94 L 3 -90", stroke: "#8c9196", "stroke-width": 1.5 }, g);
+  return { g, w: 44, h: 118 };
+}
+
 // Barbinul : le faux nain qui fait la tête (tunique kaki, bonnet à pompon terne)
 function drawBarbinul(parent) {
   const tunic = "#6d7a55";
@@ -377,6 +433,28 @@ function fragAnkle(g) {
   el("path", { d: "M 0 2 Q -3 -15 7 -17 Q 16 -17 18 -4 Q 19 2 13 2 Z", fill: "#f2b98c", stroke: "#d98f63", "stroke-width": 2 }, g);
   el("circle", { cx: 7, cy: -13, r: 2.4, fill: "#e6a37a" }, g);
 }
+// faux bonnet : coin de carton à damier qui dépasse (~ pointe de bonnet)
+function fragInvitation(g) {
+  el("path", { d: "M -10 4 L -10 -22 L 10 -22 L 10 4 Z", fill: "#fbf4e6", stroke: "rgba(0,0,0,.22)", "stroke-width": 2 }, g);
+  for (let i = 0; i < 4; i++) el("rect", { x: -10 + i * 5, y: -22, width: 5, height: 6, fill: i % 2 ? "#2c1d12" : "#fbf4e6" }, g);
+}
+// fausse botte : bout de galet gris + petit bout de langue rose
+function fragLickStone(g) {
+  el("path", { d: "M 0 2 Q -4 -16 8 -18 Q 18 -18 18 -6 Q 18 2 12 2 Z", fill: "#9aa0a6", stroke: "rgba(0,0,0,.25)", "stroke-width": 2 }, g);
+  el("ellipse", { cx: 6, cy: -11, rx: 4, ry: 2, fill: "rgba(255,255,255,.4)" }, g);
+  el("path", { d: "M 15 -6 Q 24 -5 24 -13 Q 20 -11 15 -11 Z", fill: "#e784a8", stroke: "#c75c84", "stroke-width": 1.5 }, g);
+}
+// fausse barbe : coin de carton pastel qui dépasse sur le côté
+function fragAnnouncement(g) {
+  el("path", { d: "M 0 2 L 0 -20 L 16 -20 L 16 2 Z", fill: "#fdf1f5", stroke: "rgba(0,0,0,.2)", "stroke-width": 2 }, g);
+  el("rect", { x: 3, y: -9, width: 11, height: 4, rx: 2, fill: "#e784a8" }, g);
+  el("path", { d: "M 4 -15 L 13 -15", fill: "none", stroke: "#caa6b4", "stroke-width": 1.5 }, g);
+}
+// fausse botte : mandrin gris + mèche métallique qui dépasse
+function fragDrill(g) {
+  el("rect", { x: 0, y: -16, width: 14, height: 16, rx: 3, fill: "#9aa0a6", stroke: "#6c7176", "stroke-width": 2, transform: "rotate(-12 7 -8)" }, g);
+  el("rect", { x: 4, y: -32, width: 5, height: 17, fill: "#c2c7cc", stroke: "#8c9196", "stroke-width": 1.5, transform: "rotate(-12 7 -8)" }, g);
+}
 // faux bonnet de Barbinul : pointe quasi identique au vrai nain mais
 // rouge légèrement différent + petit pompon terne (le seul tell visible)
 function fragBarbinulHat(g) {
@@ -395,6 +473,10 @@ const DECOY_TYPES = [
   { full: drawConfetti, frag: fragConfetti, kind: "top", label: "les confettis de Chris & Lulu", msg: "Raté ! Ce sont les confettis de Chris & Lulu…" },
   { full: drawWatergun, frag: fragWatergun, kind: "side-base", label: "le pistolet à eau de Loulou", msg: "Raté ! C'est le pistolet à eau de Loulou…" },
   { full: drawAnkle, frag: fragAnkle, kind: "side-base", label: "la cheville de Nana", msg: "Raté ! C'est la cheville de Nana…" },
+  { full: drawInvitation, frag: fragInvitation, kind: "top", label: "l'invitation au Mans de la semaine prochaine", msg: "Raté ! C'est l'invitation au Mans de la semaine prochaine…" },
+  { full: drawLickStone, frag: fragLickStone, kind: "side-base", label: "un caillou à lécher", msg: "Raté ! Ce n'est qu'un caillou à lécher…" },
+  { full: drawAnnouncement, frag: fragAnnouncement, kind: "side-mid", label: "le faire-part de Sacha", msg: "Raté ! C'est le faire-part de Sacha…" },
+  { full: drawDrill, frag: fragDrill, kind: "side-base", label: "le perfo de JJ", msg: "Raté ! C'est le perfo de JJ…" },
   { full: drawBarbinul, frag: fragBarbinulHat, kind: "top", label: "Barbinul", msg: "Raté ! C'est Barbinul, le faux nain qui fait la tête…" },
 ];
 
