@@ -1100,6 +1100,7 @@ timerEl.textContent = fmt(0);
   let prevOverlay = null;   // overlay masqué pendant l'affichage du palmarès
 
   function fmtWhen(t) {
+    if (!t) return "";
     try {
       const d = new Date(t);
       const date = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
@@ -1176,8 +1177,9 @@ timerEl.textContent = fmt(0);
     if (!st.bestTimes.length) emptyLi(timesEl, "Aucun temps encore. Va trouver ce nain !");
     for (const e of st.bestTimes) {
       const li = document.createElement("li");
-      li.innerHTML = '<span class="who"></span><span class="score"></span>';
+      li.innerHTML = '<span class="who"></span><span class="when"></span><span class="score"></span>';
       li.querySelector(".who").textContent = e.p;       // textContent = pas d'injection
+      li.querySelector(".when").textContent = fmtWhen(e.t);
       li.querySelector(".score").textContent = fmt(e.ms);
       timesEl.appendChild(li);
     }
