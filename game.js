@@ -930,7 +930,8 @@ timerEl.textContent = fmt(0);
    Si quelqu'un ouvre les DevTools pour fouiller / bidouiller le HTML,
    le Barbichon le prend la main dans le sac. */
 (function devtoolsGuard() {
-  let busted = false;
+  let shown = false;      // overlay actuellement affiché
+  let dismissed = false;  // alerte fermée pour cette ouverture d'inspecteur
 
   const BUST_QUIPS = [
     "Le Barbichon t'a vu soulever le capot pour fouiller dans son code… Mauvais joueur&nbsp;! Il ira se cacher ailleurs.",
@@ -939,8 +940,8 @@ timerEl.textContent = fmt(0);
   ];
 
   function bust() {
-    if (busted) return;
-    busted = true;
+    if (shown) return;
+    shown = true;
 
     const ov = document.createElement("div");
     ov.id = "devtoolsBust";
@@ -955,25 +956,39 @@ timerEl.textContent = fmt(0);
     drawGnome(el("g", {}, ov.querySelector(".bust-gnome")));
     ov.querySelector("#bustClose").addEventListener("click", () => {
       ov.remove();
-      busted = false; // on lui laisse une seconde chance
+      shown = false;
+      dismissed = true; // on ne le harcèle pas tant qu'il ne rouvre pas l'inspecteur
     });
   }
 
-  // Méthode 1 : écart de taille de la fenêtre (inspecteur ancré sur le côté/bas)
-  const THRESHOLD = 165;
-  function checkSize() {
-    if (window.outerWidth - window.innerWidth > THRESHOLD ||
-        window.outerHeight - window.innerHeight > THRESHOLD) {
+  // Méthode 1 : raccourcis qui ouvrent l'inspecteur (instantané, fiable)
+  // e.code est indépendant de la disposition clavier et des modificateurs.
+  window.addEventListener("keydown", (e) => {
+    const letter = e.code === "KeyI" || e.code === "KeyJ" || e.code === "KeyC";
+    const opensTools =
+      e.key === "F12" ||
+      ((e.ctrlKey || e.metaKey) && e.shiftKey && letter) || // Win/Linux + Chrome Mac
+      (e.metaKey && e.altKey && letter);                    // raccourcis Mac alternatifs
+    if (opensTools) {
+      dismissed = false;
       bust();
     }
-  }
-  setInterval(checkSize, 1000);
-  checkSize();
+  });
 
-  // Méthode 2 : piège déclenché quand la console formate l'objet (inspecteur détaché)
-  const bait = /barbichon/;
-  bait.toString = function () { bust(); return "👀 coucou !"; };
-  setInterval(() => {
-    if (!busted) console.log("%c", bait);
-  }, 1500);
+  // Méthode 2 : écart de taille de la fenêtre (inspecteur ancré, ex. clic droit « Inspecter »)
+  const THRESHOLD = 160;
+  function docked() {
+    return window.outerWidth - window.innerWidth > THRESHOLD ||
+           window.outerHeight - window.innerHeight > THRESHOLD;
+  }
+  function poll() {
+    if (docked()) {
+      if (!dismissed) bust();
+    } else {
+      dismissed = false; // inspecteur refermé : on réarme
+    }
+  }
+  window.addEventListener("resize", poll);
+  setInterval(poll, 700);
+  poll();
 })();
