@@ -387,6 +387,30 @@ body {
   box-shadow: 0 2px 0 var(--red-deep);
 }
 
+/* ---------- Détecteur d'inspecteur ---------- */
+
+#devtoolsBust {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(58, 42, 28, .55);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+#devtoolsBust .bust-gnome {
+  transform-origin: 50% 100%;
+  animation: bust-wag .5s ease-in-out infinite alternate;
+}
+
+@keyframes bust-wag {
+  from { transform: rotate(-7deg); }
+  to   { transform: rotate(7deg); }
+}
+
 /* ---------- Mobile ---------- */
 
 .rotate-hint { display: none; }

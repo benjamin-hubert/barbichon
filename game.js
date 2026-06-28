@@ -925,3 +925,55 @@ drawGnome(ig);
 // décor d'ambiance derrière l'écran d'intro
 generateScene(randInt(1, 2 ** 31));
 timerEl.textContent = fmt(0);
+
+/* ---------- Détecteur d'inspecteur (œuf de Pâques) ----------
+   Si quelqu'un ouvre les DevTools pour fouiller / bidouiller le HTML,
+   le Barbichon le prend la main dans le sac. */
+(function devtoolsGuard() {
+  let busted = false;
+
+  const BUST_QUIPS = [
+    "Le Barbichon t'a vu soulever le capot pour fouiller dans son code… Mauvais joueur&nbsp;! Il ira se cacher ailleurs.",
+    "Pas la peine d'inspecter le HTML, petit malin&nbsp;: le nain change de cachette à chaque partie&nbsp;!",
+    "Hé&nbsp;! Bidouiller la page, c'est de la triche. Le Barbichon te tient à l'œil.",
+  ];
+
+  function bust() {
+    if (busted) return;
+    busted = true;
+
+    const ov = document.createElement("div");
+    ov.id = "devtoolsBust";
+    ov.innerHTML = `
+      <div class="card">
+        <svg class="card-gnome bust-gnome" viewBox="-60 -190 120 200" aria-hidden="true"></svg>
+        <h2>Pris la main dans le sac&nbsp;!</h2>
+        <p>${pick(BUST_QUIPS)}</p>
+        <button type="button" class="btn" id="bustClose">Promis, j'arrête…</button>
+      </div>`;
+    document.body.appendChild(ov);
+    drawGnome(el("g", {}, ov.querySelector(".bust-gnome")));
+    ov.querySelector("#bustClose").addEventListener("click", () => {
+      ov.remove();
+      busted = false; // on lui laisse une seconde chance
+    });
+  }
+
+  // Méthode 1 : écart de taille de la fenêtre (inspecteur ancré sur le côté/bas)
+  const THRESHOLD = 165;
+  function checkSize() {
+    if (window.outerWidth - window.innerWidth > THRESHOLD ||
+        window.outerHeight - window.innerHeight > THRESHOLD) {
+      bust();
+    }
+  }
+  setInterval(checkSize, 1000);
+  checkSize();
+
+  // Méthode 2 : piège déclenché quand la console formate l'objet (inspecteur détaché)
+  const bait = /barbichon/;
+  bait.toString = function () { bust(); return "👀 coucou !"; };
+  setInterval(() => {
+    if (!busted) console.log("%c", bait);
+  }, 1500);
+})();
