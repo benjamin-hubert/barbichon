@@ -1184,16 +1184,24 @@ timerEl.textContent = fmt(0);
       timesEl.appendChild(li);
     }
 
-    // compteur de tirages par nom (tri décroissant)
+    // compteur de tirages par nom (tri décroissant) ; le 1er = accusé en chef
     const entries = Object.entries(st.tally).sort((a, b) => b[1] - a[1]);
     if (!entries.length) emptyLi(tallyEl, "La roue n'a encore désigné personne.");
-    for (const [name, n] of entries) {
+    entries.forEach(([name, n], idx) => {
       const li = document.createElement("li");
-      li.innerHTML = '<span></span><span class="count"></span>';
-      li.children[0].textContent = name;
-      li.children[1].textContent = "×" + n;
+      if (idx === 0) {
+        li.className = "accused";
+        li.innerHTML = '<span class="who-accused"></span><span class="count"></span><span class="accuse-note"></span>';
+        li.querySelector(".who-accused").textContent = "👉 " + name;
+        li.querySelector(".count").textContent = "×" + n;
+        li.querySelector(".accuse-note").textContent = "Coupable tout désigné — c'est forcément lui.";
+      } else {
+        li.innerHTML = '<span></span><span class="count"></span>';
+        li.children[0].textContent = name;
+        li.children[1].textContent = "×" + n;
+      }
       tallyEl.appendChild(li);
-    }
+    });
 
     // derniers tirages (plus récent en premier, max 15)
     const recent = st.draws.slice(-15).reverse();

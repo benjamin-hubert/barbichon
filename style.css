@@ -630,6 +630,47 @@ body {
   color: var(--red);
 }
 
+/* l'accusé en chef : le nom le plus souvent désigné par la roue */
+.board-tally li.accused {
+  flex-wrap: wrap;
+  align-items: center;
+  margin: .25em 0;
+  padding: .45em .65em;
+  background: #ffdcd4;
+  border: 2px solid var(--red-deep);
+  border-radius: 12px;
+  border-bottom: 2px solid var(--red-deep);
+  color: var(--red-deep);
+  font-weight: 700;
+  animation: accuse-pulse 1.7s ease-in-out infinite;
+}
+
+.board-tally li.accused .who-accused {
+  font-family: "Caprasimo", serif;
+  font-size: 1.08em;
+  letter-spacing: .01em;
+}
+
+.board-tally li.accused .count {
+  color: var(--red-deep);
+  font-size: 1.15em;
+}
+
+.board-tally li.accused .accuse-note {
+  flex-basis: 100%;
+  margin-top: .15em;
+  font-family: "Fredoka", sans-serif;
+  font-size: .78em;
+  font-style: italic;
+  font-weight: 600;
+  text-align: left;
+}
+
+@keyframes accuse-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(169, 55, 34, 0); }
+  50%      { box-shadow: 0 0 0 4px rgba(169, 55, 34, .18); }
+}
+
 .board-empty {
   color: var(--ink-soft);
   font-style: italic;
