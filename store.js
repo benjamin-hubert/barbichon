@@ -15,8 +15,8 @@
 "use strict";
 
 const CONFIG = {
-  BIN_ID: "",        // ex: "66a1f0e2ad19ca34f8c1234"
-  ACCESS_KEY: "",    // ex: "$2a$10$......"  (clé d'accès JSONBin, pas la Master Key si possible)
+  BIN_ID: "6a416abfda38895dfe0c9ec9",
+  ACCESS_KEY: "$2a$10$odcqr42bu4TBTH3ZQMrqqug7PoT.OY4vg/IdVspKfn9BB4SKajYFi",
 };
 
 (function () {
