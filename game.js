@@ -763,6 +763,9 @@ function mountDecoy(spot, type, p) {
 
 const state = { phase: "intro", startTs: 0, penaltyMs: 0, finalMs: 0, lastWinMs: null, raf: 0 };
 
+// passe à true si l'inspecteur est détecté pendant la partie → score non homologué
+let cheated = false;
+
 function elapsedMs() {
   return state.phase === "playing"
     ? performance.now() - state.startTs + state.penaltyMs
@@ -790,6 +793,9 @@ function startGame() {
   introEl.classList.add("hidden");
   winEl.classList.add("hidden");
   resetTribunal();
+  cheated = false;
+  const wc = document.getElementById("winCheat");
+  if (wc) wc.classList.add("hidden");
   cancelAnimationFrame(state.raf);
   tick();
 }
@@ -910,6 +916,13 @@ function winGame() {
 
   winTimeEl.textContent = fmt(state.finalMs);
   winQuipEl.textContent = WIN_QUIPS.find(([max]) => state.finalMs < max)[1];
+  const wc = document.getElementById("winCheat");
+  if (cheated) {
+    if (wc) wc.classList.remove("hidden");           // tricheur : score non homologué
+  } else {
+    if (wc) wc.classList.add("hidden");
+    if (window.offerRecord) window.offerRecord(state.finalMs);
+  }
   setTimeout(() => winEl.classList.remove("hidden"), 1100);
 }
 
@@ -958,14 +971,7 @@ timerEl.textContent = fmt(0);
     (n) => `Alerte : la roue a désigné ${n}. Un huissier confirme que Pape respire enfin.`,
   ];
 
-  const STORE_KEY = "barbichon-pape-accusations";
-  const loadCount = () => {
-    try { return parseInt(localStorage.getItem(STORE_KEY) || "0", 10) || 0; }
-    catch (_) { return 0; }
-  };
-  const saveCount = (n) => {
-    try { localStorage.setItem(STORE_KEY, String(n)); } catch (_) {}
-  };
+  const Store = window.BarbichonStore;
 
   const rpick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   // pioche un élément différent de `avoid` (sans boucle, donc jamais bloquant)
@@ -1038,29 +1044,176 @@ timerEl.textContent = fmt(0);
       nameEl.classList.remove("spinning");
       // petit délai dramatique sur le dernier nom avant le verdict
       setTimeout(() => {
-        if (surprise) {
-          nameEl.classList.add("surprise");
-          verdictEl.textContent = rpick(SURPRISE_VERDICTS)(culprit);
-          const n = loadCount();
-          countEl.textContent = n > 0
-            ? `Pape souffle : il en reste à ${n} accusation${n > 1 ? "s" : ""}, et pour une fois ce n'est pas lui.`
-            : "Pape souffle : pour une fois, ce n'est pas lui.";
-        } else {
-          nameEl.classList.add("verdict");
-          verdictEl.textContent = rpick(VERDICTS);
-          const n = loadCount() + 1;
-          saveCount(n);
-          countEl.textContent = n === 1
-            ? "1ʳᵉ accusation de Pape… et probablement pas la dernière."
-            : `Pape en est à ${n} accusations. À ce rythme, c'est un dossier.`;
-        }
+        nameEl.classList.add(surprise ? "surprise" : "verdict");
+        verdictEl.textContent = surprise
+          ? rpick(SURPRISE_VERDICTS)(culprit)
+          : rpick(VERDICTS);
+        countEl.textContent = "…";
+        recordAndShow(culprit, surprise);
       }, 420);
     }
 
     step();
   }
 
+  // enregistre le tirage dans le store partagé puis affiche le compteur du nom
+  async function recordAndShow(name, surprise) {
+    let st = null;
+    try { st = await Store.recordDraw(name); } catch (_) {}
+    const papeN = st ? (st.tally.Pape || 0) : 0;
+    const thisN = st ? (st.tally[name] || 0) : 0;
+    if (surprise) {
+      countEl.textContent = papeN > 0
+        ? `Pape souffle : il en reste à ${papeN} accusation${papeN > 1 ? "s" : ""}, et pour une fois ce n'est pas lui (${name} ×${thisN}).`
+        : "Pape souffle : pour une fois, ce n'est pas lui.";
+    } else {
+      countEl.textContent = papeN === 1
+        ? "1ʳᵉ accusation de Pape… et probablement pas la dernière."
+        : `Pape en est à ${papeN} accusations. À ce rythme, c'est un dossier.`;
+    }
+  }
+
   btn.addEventListener("click", spin);
+})();
+
+/* ---------- Palmarès : records (Top 10 + pseudo) & journal de la roue ----------
+   Lecture/écriture via window.BarbichonStore (JSONBin si configuré, sinon
+   localStorage). Toute la logique tolère l'absence de réseau. */
+(function boardModule() {
+  const Store = window.BarbichonStore;
+  if (!Store) return;
+
+  const overlay = document.getElementById("boardOverlay");
+  const scopeEl = document.getElementById("boardScope");
+  const timesEl = document.getElementById("boardTimes");
+  const tallyEl = document.getElementById("boardTally");
+  const logEl = document.getElementById("boardLog");
+
+  const recordForm = document.getElementById("recordForm");
+  const recordRow = recordForm.querySelector(".record-row");
+  const recordFlag = document.getElementById("recordFlag");
+  const pseudoInput = document.getElementById("pseudoInput");
+  const saveBtn = document.getElementById("saveTimeBtn");
+
+  const PSEUDO_KEY = "barbichon-pseudo";
+  let pendingMs = null;     // temps en attente d'enregistrement (null = rien à sauver)
+  let prevOverlay = null;   // overlay masqué pendant l'affichage du palmarès
+
+  function fmtDate(t) {
+    try { return new Date(t).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }); }
+    catch (_) { return ""; }
+  }
+
+  function emptyLi(ul, txt) {
+    const li = document.createElement("li");
+    li.className = "board-empty";
+    li.textContent = txt;
+    ul.appendChild(li);
+  }
+
+  // invalide tout enregistrement en cours (appelé si l'inspecteur est détecté)
+  window.invalidateScore = function () {
+    pendingMs = null;
+    recordForm.classList.add("hidden");
+  };
+
+  // proposé après une victoire : si le temps entre dans le Top 10, on demande le pseudo
+  window.offerRecord = async function (ms) {
+    pendingMs = null;
+    recordForm.classList.add("hidden");
+    recordRow.style.display = "";
+    saveBtn.disabled = false;
+    if (cheated) return;            // tricheur : pas de score homologué
+    let st;
+    try { st = await Store.getState(); } catch (_) { return; }
+    if (!Store.qualifies(st, ms)) return;
+    pendingMs = ms;
+    recordFlag.textContent = "🏅 Nouveau record ! Entre ton pseudo :";
+    try { pseudoInput.value = localStorage.getItem(PSEUDO_KEY) || ""; } catch (_) {}
+    recordForm.classList.remove("hidden");
+    setTimeout(() => { try { pseudoInput.focus(); } catch (_) {} }, 60);
+  };
+
+  async function saveTime() {
+    if (pendingMs == null) return;
+    if (cheated) { recordForm.classList.add("hidden"); pendingMs = null; return; } // anti-triche
+    const pseudo = (pseudoInput.value || "").trim().slice(0, 14) || "Anonyme";
+    try { localStorage.setItem(PSEUDO_KEY, pseudo); } catch (_) {}
+    const ms = pendingMs;
+    pendingMs = null;
+    saveBtn.disabled = true;
+    let rank = null;
+    try { ({ rank } = await Store.recordTime(pseudo, ms)); } catch (_) {}
+    recordRow.style.display = "none";
+    recordFlag.textContent = rank
+      ? `🏅 ${pseudo}, tu es ${rank === 1 ? "1er" : rank + "e"} au classement !`
+      : "Record enregistré ✓";
+  }
+
+  async function openBoard() {
+    // masque l'overlay courant (intro ou victoire) : évite d'empiler deux
+    // fonds floutés (rendu douteux) et garde un affichage net.
+    prevOverlay = null;
+    for (const id of ["intro", "winOverlay"]) {
+      const o = document.getElementById(id);
+      if (!o.classList.contains("hidden")) { prevOverlay = o; o.classList.add("hidden"); break; }
+    }
+    timesEl.innerHTML = tallyEl.innerHTML = logEl.innerHTML = "";
+    scopeEl.textContent = Store.isRemote()
+      ? "Classement partagé entre potes 🌍"
+      : "Sur cet appareil (active le partage dans store.js) 📱";
+    overlay.classList.remove("hidden");
+
+    let st;
+    try { st = await Store.getState(); }
+    catch (_) { st = { draws: [], tally: {}, bestTimes: [] }; }
+
+    // meilleurs temps
+    if (!st.bestTimes.length) emptyLi(timesEl, "Aucun temps encore. Va trouver ce nain !");
+    for (const e of st.bestTimes) {
+      const li = document.createElement("li");
+      li.innerHTML = '<span class="who"></span><span class="score"></span>';
+      li.querySelector(".who").textContent = e.p;       // textContent = pas d'injection
+      li.querySelector(".score").textContent = fmt(e.ms);
+      timesEl.appendChild(li);
+    }
+
+    // compteur de tirages par nom (tri décroissant)
+    const entries = Object.entries(st.tally).sort((a, b) => b[1] - a[1]);
+    if (!entries.length) emptyLi(tallyEl, "La roue n'a encore désigné personne.");
+    for (const [name, n] of entries) {
+      const li = document.createElement("li");
+      li.innerHTML = '<span></span><span class="count"></span>';
+      li.children[0].textContent = name;
+      li.children[1].textContent = "×" + n;
+      tallyEl.appendChild(li);
+    }
+
+    // derniers tirages (plus récent en premier, max 15)
+    const recent = st.draws.slice(-15).reverse();
+    if (!recent.length) emptyLi(logEl, "—");
+    for (const d of recent) {
+      const li = document.createElement("li");
+      li.innerHTML = '<span></span><span class="when"></span>';
+      li.children[0].textContent = d.n;
+      li.children[1].textContent = fmtDate(d.t);
+      logEl.appendChild(li);
+    }
+  }
+
+  function closeBoard() {
+    overlay.classList.add("hidden");
+    if (prevOverlay) { prevOverlay.classList.remove("hidden"); prevOverlay = null; }
+  }
+
+  document.getElementById("boardBtnIntro").addEventListener("click", openBoard);
+  document.getElementById("boardBtnWin").addEventListener("click", openBoard);
+  document.getElementById("boardCloseBtn").addEventListener("click", closeBoard);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeBoard(); });
+  saveBtn.addEventListener("click", saveTime);
+  pseudoInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); saveTime(); }
+  });
 })();
 
 /* ---------- Détecteur d'inspecteur (œuf de Pâques) ----------
@@ -1077,6 +1230,12 @@ timerEl.textContent = fmt(0);
   ];
 
   function bust() {
+    // ouvrir l'inspecteur invalide le score de la partie en cours
+    cheated = true;
+    if (window.invalidateScore) window.invalidateScore();
+    const wc = document.getElementById("winCheat");
+    if (wc && winEl && !winEl.classList.contains("hidden")) wc.classList.remove("hidden");
+
     if (shown) return;
     shown = true;
 

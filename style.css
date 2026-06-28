@@ -464,6 +464,180 @@ body {
   margin-top: .1em !important;
 }
 
+/* ---------- Boutons secondaires ---------- */
+
+.btn-small {
+  font-size: clamp(.85rem, 2vw, 1rem);
+  padding: .35em 1em;
+  margin-top: 0;
+  box-shadow: 0 5px 0 var(--red-deep);
+}
+
+.btn-link {
+  display: inline-block;
+  margin-top: 12px;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-family: "Fredoka", sans-serif;
+  font-weight: 600;
+  font-size: clamp(.85rem, 1.8vw, 1rem);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.btn-link:hover { color: var(--red); }
+
+.win-cheat {
+  margin: 6px auto 2px !important;
+  padding: .4em .8em;
+  max-width: 320px;
+  background: #ffdcd4;
+  border: 3px solid var(--red-deep);
+  border-radius: 14px;
+  color: var(--red-deep) !important;
+  font-weight: 700;
+  font-size: clamp(.82rem, 1.8vw, .98rem) !important;
+}
+
+.win-cheat.hidden { display: none; }
+
+/* ---------- Capture d'un nouveau record ---------- */
+
+.record-form {
+  margin: 8px 0 4px;
+  padding: 10px;
+  background: #fff5d6;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  animation: card-in .4s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.record-form.hidden { display: none; }
+
+.record-flag {
+  margin: 0 0 6px !important;
+  font-weight: 700;
+  color: var(--red-deep) !important;
+}
+
+.record-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.record-row input {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: .35em .7em;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  width: min(180px, 50vw);
+  text-align: center;
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.record-row input:focus {
+  outline: none;
+  border-color: var(--red);
+}
+
+/* ---------- Palmarès ---------- */
+
+/* au-dessus de l'intro / victoire, qui peuvent rester affichés derrière */
+#boardOverlay { z-index: 20; }
+
+.card-board {
+  text-align: left;
+  max-width: 460px;
+  max-height: 88dvh;
+  overflow-y: auto;
+}
+
+.card-board h2 { text-align: center; }
+
+.board-scope {
+  text-align: center;
+  font-size: .82rem !important;
+  font-style: italic;
+  margin-top: -.2em !important;
+}
+
+.board-h {
+  font-family: "Caprasimo", serif;
+  font-weight: 400;
+  font-size: 1.15rem;
+  color: var(--red);
+  margin: 1em 0 .35em;
+  border-bottom: 2px dashed var(--paper-deep);
+  padding-bottom: .2em;
+}
+
+.board-times,
+.board-tally,
+.board-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(.85rem, 1.9vw, 1rem);
+  color: var(--ink);
+}
+
+.board-times li,
+.board-tally li,
+.board-log li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: .28em .2em;
+  border-bottom: 1px solid rgba(58, 42, 28, .08);
+}
+
+.board-times { counter-reset: rank; }
+
+.board-times li { counter-increment: rank; }
+
+.board-times li .who::before {
+  content: counter(rank) ". ";
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.board-times li:first-child .who::before { content: "🥇 "; }
+.board-times li:nth-child(2) .who::before { content: "🥈 "; }
+.board-times li:nth-child(3) .who::before { content: "🥉 "; }
+
+.board-times .when,
+.board-log .when {
+  color: var(--ink-soft);
+  font-size: .8em;
+  font-variant-numeric: tabular-nums;
+}
+
+.board-times .score {
+  font-family: "Caprasimo", serif;
+  color: var(--red);
+  font-variant-numeric: tabular-nums;
+}
+
+.board-tally .count {
+  font-weight: 700;
+  color: var(--red);
+}
+
+.board-empty {
+  color: var(--ink-soft);
+  font-style: italic;
+  justify-content: center !important;
+}
+
+.card-board .btn { display: block; margin: 18px auto 0; }
+
 /* coup de théâtre : la roue tombe (rarement) sur quelqu'un d'autre */
 .tribunal-name.surprise {
   color: var(--leaf);
