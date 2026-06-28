@@ -789,6 +789,7 @@ function startGame() {
   state.penaltyMs = 0;
   introEl.classList.add("hidden");
   winEl.classList.add("hidden");
+  resetTribunal();
   cancelAnimationFrame(state.raf);
   tick();
 }
@@ -925,6 +926,96 @@ drawGnome(ig);
 // décor d'ambiance derrière l'écran d'intro
 generateScene(randInt(1, 2 ** 31));
 timerEl.textContent = fmt(0);
+
+/* ---------- Le tribunal du Barbichon ----------
+   Pour rigoler : on « désigne » le coupable du nain de jardin. La roue
+   a l'air de tirer au sort parmi toute la bande… mais elle tombe
+   TOUJOURS sur Pape, et le verdict s'en étonne lui-même. */
+(function tribunalModule() {
+  const SUSPECTS = ["Chris", "Lulu", "RV", "AnneSo", "Nana", "Ben", "Pape", "Loulou", "Jacques Chirac"];
+  const CULPRIT = "Pape";
+  const OTHERS = SUSPECTS.filter((n) => n !== CULPRIT);
+
+  // Toutes feignent la surprise : bizarre que ça retombe toujours sur lui…
+  const VERDICTS = [
+    "Encore Pape ?! La roue jure pourtant qu'elle a tourné au hasard…",
+    "Coupable : Pape. Comme la dernière fois. Et celle d'avant. Troublant.",
+    "C'est… Pape. Étrange, la roue tombe toujours sur lui, non ?",
+    "Verdict : Pape. Les statisticiens du groupe commencent à s'inquiéter.",
+    "Pape, sans surprise. Le hasard a manifestement un favori.",
+    "La roue a hésité une fraction de seconde… puis non, c'est bien Pape.",
+    "Toujours Pape. À ce stade ce n'est plus du hasard, c'est une signature.",
+    "Le tribunal du Barbichon déclare Pape coupable. Il plaide « pas cette fois »… mais si.",
+  ];
+
+  const rpick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  const btn = document.getElementById("tribunalBtn");
+  const stageEl = document.getElementById("tribunalStage");
+  const nameEl = document.getElementById("tribunalName");
+  const verdictEl = document.getElementById("tribunalVerdict");
+
+  let spinning = false;
+
+  window.resetTribunal = function () {
+    spinning = false;
+    btn.classList.remove("hidden");
+    btn.disabled = false;
+    stageEl.classList.add("hidden");
+    nameEl.classList.remove("spinning", "verdict");
+    nameEl.textContent = "—";
+    verdictEl.textContent = "";
+  };
+
+  function spin() {
+    if (spinning) return;
+    spinning = true;
+    btn.classList.add("hidden");
+    stageEl.classList.remove("hidden");
+    verdictEl.textContent = "";
+    nameEl.classList.remove("verdict");
+    nameEl.classList.add("spinning");
+
+    const STEPS = 30;
+    let i = 0;
+    let last = "";
+
+    function step() {
+      let name;
+      if (i >= STEPS - 1) {
+        name = CULPRIT;              // arrivée : toujours Pape
+      } else if (i === STEPS - 4) {
+        name = rpick(OTHERS);        // petit faux suspense juste avant
+      } else {
+        do { name = rpick(SUSPECTS); } while (name === last); // évite les répétitions
+      }
+      last = name;
+      nameEl.textContent = name;
+      i++;
+
+      if (i < STEPS) {
+        const t = i / STEPS;
+        setTimeout(step, 45 + t * t * t * 430); // décélération façon roue
+      } else {
+        finish();
+      }
+    }
+
+    function finish() {
+      spinning = false;
+      nameEl.classList.remove("spinning");
+      // petit délai dramatique sur le dernier nom avant le verdict
+      setTimeout(() => {
+        nameEl.classList.add("verdict");
+        verdictEl.textContent = rpick(VERDICTS);
+      }, 420);
+    }
+
+    step();
+  }
+
+  btn.addEventListener("click", spin);
+})();
 
 /* ---------- Détecteur d'inspecteur (œuf de Pâques) ----------
    Si quelqu'un ouvre les DevTools pour fouiller / bidouiller le HTML,

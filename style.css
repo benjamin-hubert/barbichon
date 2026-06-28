@@ -387,6 +387,76 @@ body {
   box-shadow: 0 2px 0 var(--red-deep);
 }
 
+.btn-gold {
+  background: var(--gold);
+  color: var(--ink);
+  box-shadow: 0 7px 0 #b8861f;
+}
+
+.btn-gold:hover { box-shadow: 0 9px 0 #b8861f; }
+.btn-gold:active { box-shadow: 0 2px 0 #b8861f; }
+
+/* ---------- Tribunal du Barbichon ---------- */
+
+.tribunal {
+  margin-top: 16px;
+}
+
+.tribunal-stage {
+  margin-top: 14px;
+  animation: card-in .4s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.tribunal-stage.hidden {
+  display: none;
+}
+
+.tribunal-label {
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-size: clamp(.85rem, 1.8vw, 1rem);
+}
+
+.tribunal-name {
+  display: inline-block;
+  font-family: "Caprasimo", serif;
+  font-size: clamp(1.6rem, 5vw, 2.6rem);
+  color: var(--red);
+  background: var(--cream);
+  border: 4px solid var(--ink);
+  border-radius: 16px;
+  padding: .08em .5em;
+  margin: .3em auto;
+  min-width: 5.5em;
+  box-shadow: 0 5px 0 rgba(58, 42, 28, .22);
+}
+
+.tribunal-name.spinning {
+  animation: tribunal-shake .1s linear infinite;
+}
+
+.tribunal-name.verdict {
+  animation: tribunal-pop .55s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+@keyframes tribunal-shake {
+  0%   { transform: translateY(0) rotate(-1.5deg); }
+  50%  { transform: translateY(-2px) rotate(1.5deg); }
+  100% { transform: translateY(0) rotate(-1.5deg); }
+}
+
+@keyframes tribunal-pop {
+  0%   { transform: scale(.55) rotate(-4deg); }
+  60%  { transform: scale(1.18) rotate(3deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.tribunal-verdict {
+  font-weight: 600;
+  min-height: 1.3em;
+  margin-top: .2em !important;
+}
+
 /* ---------- Détecteur d'inspecteur ---------- */
 
 #devtoolsBust {
