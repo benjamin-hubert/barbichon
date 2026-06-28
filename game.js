@@ -270,6 +270,52 @@ function drawAnkle(parent) {
   return { g, w: 46, h: 46 };
 }
 
+// Le perforateur de JJ : le faux nain version ouvrier de chantier (tunique orange fluo, casque de protection, barbe grise de poussière)
+function drawPerforateurDeJJ(parent) {
+  const tunic = "#ff6b00";      // Orange de chantier/haute visibilité
+  const tunicDark = "#c45200";  // Ombre de la tunique
+  const g = el("g", { class: "gnome-body" }, parent);
+  // Pieds (Grosses bottes de sécurité marron foncé)
+  el("ellipse", { cx: -13, cy: -6, rx: 14, ry: 9, fill: "#3a2512" }, g);
+  el("ellipse", { cx: 13, cy: -6, rx: 14, ry: 9, fill: "#2b1b0d" }, g);
+  // Jambes / Pantalon (Bleu de travail)
+  el("rect", { x: -16, y: -50, width: 32, height: 42, rx: 9, fill: "#2e4057" }, g);
+  // Tunique orange fluo avec bandes réfléchissantes grey/silver
+  el("path", { d: "M -27 -48 Q 0 -62 27 -48 L 21 -98 Q 0 -110 -21 -98 Z", fill: tunic }, g);
+  // Bandes réfléchissantes (Détail de sécurité sur la veste)
+  el("path", { d: "M -24 -70 Q 0 -82 24 -70", fill: "none", stroke: "#cbd5e1", "stroke-width": 4 }, g);
+  // Ceinture porte-outils
+  el("rect", { x: -25, y: -64, width: 50, height: 11, rx: 5, fill: "#4a3728" }, g);
+  el("rect", { x: -7, y: -67, width: 14, height: 16, rx: 3, fill: "#94a3b8" }, g); // Boucle acier
+  // Bras costauds en position de force / tenant un outil invisible
+  el("ellipse", { cx: -20, cy: -70, rx: 9, ry: 11, fill: tunicDark }, g);
+  el("ellipse", { cx: 20, cy: -70, rx: 9, ry: 11, fill: tunicDark }, g);
+  // Barbe grise, épaisse et "poussiéreuse"
+  el("path", { d: "M -23 -102 Q -35 -60 0 -50 Q 35 -60 23 -102 Q 11 -92 0 -92 Q -11 -92 -23 -102 Z", fill: "#94a3b8", stroke: "#64748b", "stroke-width": 2 }, g);
+  // Visage
+  el("circle", { cx: 0, cy: -106, r: 16, fill: "#f1c29b" }, g);
+  // Bouche (Un rictus déterminé ou un effort concentré)
+  el("path", { d: "M -6 -96 Q 0 -93 6 -96", fill: "none", stroke: "#9c5a3c", "stroke-width": 2.5, "stroke-linecap": "round" }, g);
+  // Gros nez (Un peu marqué par le travail en extérieur)
+  el("ellipse", { cx: 0, cy: -101, rx: 8, ry: 7, fill: "#e0946b" }, g);
+  // Yeux / Lunettes de protection transparentes
+  el("circle", { cx: -7, cy: -111, r: 2.5, fill: "#1e293b" }, g);
+  el("circle", { cx: 7, cy: -111, r: 2.5, fill: "#1e293b" }, g);
+  // Monture des lunettes de protection
+  el("path", { d: "M -13 -111 Q -7 -117 0 -111 Q 7 -117 13 -111", fill: "none", stroke: "#38bdf8", "stroke-width": 1.5, "stroke-opacity": 0.7 }, g);
+  // Sourcils droits et épais
+  el("path", { d: "M -12 -116 L -3 -116", fill: "none", stroke: "#475569", "stroke-width": 3, "stroke-linecap": "round" }, g);
+  el("path", { d: "M 12 -116 L 3 -116", fill: "none", stroke: "#475569", "stroke-width": 3, "stroke-linecap": "round" }, g);
+  // Casque de chantier jaune (qui remplace le bonnet de nain classique)
+  // Base du casque
+  el("path", { d: "M -22 -112 Q 0 -124 22 -112 Q 20 -145 0 -145 Q -20 -145 -22 -112 Z", fill: "#facc15", stroke: "#ca8a04", "stroke-width": 2 }, g);
+  // Visière du casque
+  el("path", { d: "M -24 -112 Q 0 -118 24 -112", fill: "none", stroke: "#ca8a04", "stroke-width": 3, "stroke-linecap": "round" }, g);
+  // Crête de renforcement sur le dessus du casque
+  el("path", { d: "M -4 -135 Q 0 -148 4 -135 L 3 -116 L -3 -116 Z", fill: "#eab308" }, g); 
+  return { g, w: 62, h: GNOME_H };
+}
+
 // Barbinul : le faux nain qui fait la tête (tunique kaki, bonnet à pompon terne)
 function drawBarbinul(parent) {
   const tunic = "#6d7a55";
@@ -383,7 +429,16 @@ function fragBarbinulHat(g) {
   el("path", { d: "M -11 4 Q -6 -10 0 -22 Q 6 -10 11 4 Z", fill: "#cf5138", stroke: "#9e3a22", "stroke-width": 2.5 }, g);
   el("circle", { cx: 0, cy: -22, r: 3.4, fill: "#b7b1a1", stroke: "#9a9482", "stroke-width": 1.2 }, g);
 }
-
+// faux bonnet du Perforateur : un casque de chantier jaune miniature 
+// avec sa crête de protection (le tell mécanique visible)
+function fragPerforateurDeJJHat(g) {
+  // Coque bombée du casque
+  el("path", { d: "M -11 4 Q -9 -14 0 -14 Q 9 -14 11 4 Z", fill: "#facc15", stroke: "#ca8a04", "stroke-width": 2 }, g);
+  // Petite crête de renfort sur le dessus
+  el("path", { d: "M -2 -14 Q 0 -19 2 -14 L 1.5 0 L -1.5 0 Z", fill: "#eab308" }, g);
+  // Visière ou bord du casque à la base
+  el("path", { d: "M -12 4 Q 0 1 12 4", fill: "none", stroke: "#ca8a04", "stroke-width": 2.5, "stroke-linecap": "round" }, g);
+}
 const DECOY_TYPES = [
   { full: drawMushroom, frag: fragMushroom, kind: "top", label: "un champignon" },
   { full: drawBalloon, frag: fragBalloon, kind: "top", label: "un ballon perdu" },
@@ -396,6 +451,8 @@ const DECOY_TYPES = [
   { full: drawWatergun, frag: fragWatergun, kind: "side-base", label: "le pistolet à eau de Loulou", msg: "Raté ! C'est le pistolet à eau de Loulou…" },
   { full: drawAnkle, frag: fragAnkle, kind: "side-base", label: "la cheville de Nana", msg: "Raté ! C'est la cheville de Nana…" },
   { full: drawBarbinul, frag: fragBarbinulHat, kind: "top", label: "Barbinul", msg: "Raté ! C'est Barbinul, le faux nain qui fait la tête…" },
+  { full: drawPerforateurDeJJ, frag: fragPerforateurDeJJHat, kind: "top", label: "PerfoJJ", msg: "Raté ! mais on est trop content t'as retrouvé le perfo de JJ…" },
+
 ];
 
 /* ---------- Dessins : décor libre ---------- */
