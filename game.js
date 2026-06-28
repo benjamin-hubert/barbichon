@@ -1099,9 +1099,13 @@ timerEl.textContent = fmt(0);
   let pendingMs = null;     // temps en attente d'enregistrement (null = rien à sauver)
   let prevOverlay = null;   // overlay masqué pendant l'affichage du palmarès
 
-  function fmtDate(t) {
-    try { return new Date(t).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }); }
-    catch (_) { return ""; }
+  function fmtWhen(t) {
+    try {
+      const d = new Date(t);
+      const date = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+      const time = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+      return `${date} ${time}`;
+    } catch (_) { return ""; }
   }
 
   function emptyLi(ul, txt) {
@@ -1196,7 +1200,7 @@ timerEl.textContent = fmt(0);
       const li = document.createElement("li");
       li.innerHTML = '<span></span><span class="when"></span>';
       li.children[0].textContent = d.n;
-      li.children[1].textContent = fmtDate(d.t);
+      li.children[1].textContent = fmtWhen(d.t);
       logEl.appendChild(li);
     }
   }
