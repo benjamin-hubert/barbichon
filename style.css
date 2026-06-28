@@ -457,6 +457,26 @@ body {
   margin-top: .2em !important;
 }
 
+.tribunal-count {
+  font-size: clamp(.78rem, 1.6vw, .9rem) !important;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin-top: .1em !important;
+}
+
+/* coup de théâtre : la roue tombe (rarement) sur quelqu'un d'autre */
+.tribunal-name.surprise {
+  color: var(--leaf);
+  animation: tribunal-surprise .7s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+@keyframes tribunal-surprise {
+  0%   { transform: scale(.5) rotate(-8deg); }
+  35%  { transform: scale(1.3) rotate(6deg); }
+  60%  { transform: scale(1.1) rotate(-4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
 /* ---------- Détecteur d'inspecteur ---------- */
 
 #devtoolsBust {

@@ -948,12 +948,38 @@ timerEl.textContent = fmt(0);
     "Le tribunal du Barbichon déclare Pape coupable. Il plaide « pas cette fois »… mais si.",
   ];
 
+  // Coup de théâtre rarissime : ~1 fois sur 50, la roue « bugge » et
+  // accuse quelqu'un d'autre, à la stupéfaction générale.
+  const SURPRISE_ODDS = 1 / 50;
+  const SURPRISE_VERDICTS = [
+    (n) => `Quoi ?! ${n} ?? La roue n'en revient pas elle-même… Pape l'a sûrement soudoyée.`,
+    (n) => `Incroyable : pour une fois ce n'est PAS Pape, c'est ${n}. Vérifiez les piles de la roue.`,
+    (n) => `${n} ?! Bug du destin. Pape exige un second tour.`,
+    (n) => `Alerte : la roue a désigné ${n}. Un huissier confirme que Pape respire enfin.`,
+  ];
+
+  const STORE_KEY = "barbichon-pape-accusations";
+  const loadCount = () => {
+    try { return parseInt(localStorage.getItem(STORE_KEY) || "0", 10) || 0; }
+    catch (_) { return 0; }
+  };
+  const saveCount = (n) => {
+    try { localStorage.setItem(STORE_KEY, String(n)); } catch (_) {}
+  };
+
   const rpick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  // pioche un élément différent de `avoid` (sans boucle, donc jamais bloquant)
+  const pickOther = (arr, avoid) => {
+    let idx = Math.floor(Math.random() * arr.length);
+    if (arr[idx] === avoid) idx = (idx + 1) % arr.length;
+    return arr[idx];
+  };
 
   const btn = document.getElementById("tribunalBtn");
   const stageEl = document.getElementById("tribunalStage");
   const nameEl = document.getElementById("tribunalName");
   const verdictEl = document.getElementById("tribunalVerdict");
+  const countEl = document.getElementById("tribunalCount");
 
   let spinning = false;
 
@@ -962,9 +988,10 @@ timerEl.textContent = fmt(0);
     btn.classList.remove("hidden");
     btn.disabled = false;
     stageEl.classList.add("hidden");
-    nameEl.classList.remove("spinning", "verdict");
+    nameEl.classList.remove("spinning", "verdict", "surprise");
     nameEl.textContent = "—";
     verdictEl.textContent = "";
+    countEl.textContent = "";
   };
 
   function spin() {
@@ -973,8 +1000,13 @@ timerEl.textContent = fmt(0);
     btn.classList.add("hidden");
     stageEl.classList.remove("hidden");
     verdictEl.textContent = "";
-    nameEl.classList.remove("verdict");
+    countEl.textContent = "";
+    nameEl.classList.remove("verdict", "surprise");
     nameEl.classList.add("spinning");
+
+    // qui sera désigné, décidé dès le départ (Pape, sauf rarissime exception)
+    const surprise = Math.random() < SURPRISE_ODDS;
+    const culprit = surprise ? rpick(OTHERS) : CULPRIT;
 
     const STEPS = 30;
     let i = 0;
@@ -983,11 +1015,11 @@ timerEl.textContent = fmt(0);
     function step() {
       let name;
       if (i >= STEPS - 1) {
-        name = CULPRIT;              // arrivée : toujours Pape
+        name = culprit;                         // arrivée
       } else if (i === STEPS - 4) {
-        name = rpick(OTHERS);        // petit faux suspense juste avant
+        name = pickOther(SUSPECTS, culprit);    // faux suspense
       } else {
-        do { name = rpick(SUSPECTS); } while (name === last); // évite les répétitions
+        name = pickOther(SUSPECTS, last);       // pas de répétition d'affilée
       }
       last = name;
       nameEl.textContent = name;
@@ -1006,8 +1038,22 @@ timerEl.textContent = fmt(0);
       nameEl.classList.remove("spinning");
       // petit délai dramatique sur le dernier nom avant le verdict
       setTimeout(() => {
-        nameEl.classList.add("verdict");
-        verdictEl.textContent = rpick(VERDICTS);
+        if (surprise) {
+          nameEl.classList.add("surprise");
+          verdictEl.textContent = rpick(SURPRISE_VERDICTS)(culprit);
+          const n = loadCount();
+          countEl.textContent = n > 0
+            ? `Pape souffle : il en reste à ${n} accusation${n > 1 ? "s" : ""}, et pour une fois ce n'est pas lui.`
+            : "Pape souffle : pour une fois, ce n'est pas lui.";
+        } else {
+          nameEl.classList.add("verdict");
+          verdictEl.textContent = rpick(VERDICTS);
+          const n = loadCount() + 1;
+          saveCount(n);
+          countEl.textContent = n === 1
+            ? "1ʳᵉ accusation de Pape… et probablement pas la dernière."
+            : `Pape en est à ${n} accusations. À ce rythme, c'est un dossier.`;
+        }
       }, 420);
     }
 
